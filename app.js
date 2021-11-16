@@ -6,6 +6,25 @@ var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var moviesRouter = require('./routes/movies');
+var mysql = require('mysql');
+
+// Connection 객체 생성 
+var connection = mysql.createConnection({
+  host: 'localhost',
+  port: 3306,
+  user: 'root',   
+  password: '1q2w3e4r',
+  database: 'test_crud'  
+});  
+// Connect
+connection.connect(function (err) {   
+  if (err) {     
+    console.error('mysql connection error');     
+    console.error(err);     
+    throw err;   
+  } 
+});
 
 var app = express();
 
@@ -21,6 +40,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
+app.use('/api/movies',moviesRouter)
+
+// insert
+app.post('/regist', function (req, res) {
+  var user = {
+    'userid': req.body.userid,
+    'name': req.body.name,
+    'address': req.body.address
+  };
+  var query = connection.query('insert into users set ?', user, function (err, result) {
+    if (err) {
+      console.error(err);
+      throw err;
+    }
+    res.status(200).send('success');
+  });
+});
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
@@ -38,8 +74,10 @@ app.use(function(err, req, res, next) {
   res.render('error');
 });
 
-var moviesRouter = require('./routes/movies');
-app.use('/api/movies',moviesRouter)
+
+
+
+
 
 module.exports = app;
 
